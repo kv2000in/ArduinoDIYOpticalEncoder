@@ -4,17 +4,19 @@
 #include <ESP8266WebServer.h>
 #include "FS.h"
 #include <string.h>
-#include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <ESP8266WiFiMulti.h>
+
+ESP8266WiFiMulti WiFiMulti;
 
 #define MAX_STRING_LEN  32
 
 ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(8000);
 const char *ssid = "*****";
-const char *password = "*****";
+const char *password = "********";
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
 
@@ -252,6 +254,74 @@ bool handleFileRead(String path) { // send the right file to the client (if it e
 }
 
 */
+/*******************Serial Read Functions ************************/
+//Serial Read stuff
+const byte numChars = 32;
+char receivedChars[numChars]; // an array to store the received data
+boolean newData = false;
+char DIR[1] = {0};
+//char DIR = 'Z';
+long VALUE = 0;
+void recvWithStartEndMarkers() {
+    static boolean recvInProgress = false;
+    static byte ndx = 0;
+    char startMarker = '<';
+    char endMarker = '>';
+    char rc;
+ 
+ // if (Serial.available() > 0) {
+    while (Serial.available() > 0 && newData == false) {
+        rc = Serial.read();
+
+        if (recvInProgress == true) {
+            if (rc != endMarker) {
+                receivedChars[ndx] = rc;
+                ndx++;
+                if (ndx >= numChars) {
+                    ndx = numChars - 1;
+                }
+            }
+            else {
+                receivedChars[ndx] = '\0'; // terminate the string
+                recvInProgress = false;
+                ndx = 0;
+                parseData();
+                newData = true;
+            }
+        }
+
+        else if (rc == startMarker) {
+            recvInProgress = true;
+        }
+    }
+}
+
+void showNewData() {
+    if (newData == true) {
+        Serial1.print("This just in ... ");
+        Serial1.println(receivedChars);
+        Serial1.print("DIRECTION=");
+        Serial1.println(DIR);
+        Serial1.print("VALUE=");
+        Serial1.println(VALUE);
+        newData = false;
+    }
+}
+
+void parseData() {
+
+    // split the data into its parts
+    
+  char * strtokIndx; // this is used by strtok() as an index
+  
+  strtokIndx = strtok(receivedChars,"-");      // get the first part - the string
+  strcpy(DIR, strtokIndx); // copy it to DIR
+  //strcpy(DIR,0);
+  //strtokIndx = strtok(NULL, "-"); // this continues where the previous call left off
+  //VALUE = atoi(strtokIndx); // convert this part to an integer
+  VALUE = atol(strtokIndx+2);   
+ }
+/*******************Serial Read Functions ************************/
 
 void setup()
 { 
@@ -259,6 +329,7 @@ void setup()
 
   Serial1.begin(115200);
   delay(10);
+  Serial.begin(57600);
   //Serial1.setDebugOutput(true);
 
   Serial1.println();
@@ -269,16 +340,32 @@ void setup()
     Serial1.printf("[SETUP] BOOT WAIT %d...\r\n", t);
     Serial1.flush();
     delay(1000);
+   Serial.print("<f-10000>");
+  }
+/***************** AP mode*******************/
+//  Serial1.print("Configuring access point...");
+//  WiFi.softAP(ssid, password);
+//
+//  IPAddress myIP = WiFi.softAPIP();
+//  Serial1.print("AP IP address: ");
+// Serial1.println(myIP);
+  
+/***********************************************/
+
+/*****************Client Mode******************/
+  WiFiMulti.addAP(ssid, password);
+
+  while(WiFiMulti.run() != WL_CONNECTED) {
+    Serial1.print(".");
+    delay(100);
   }
 
-  Serial1.print("Configuring access point...");
-  WiFi.softAP(ssid, password);
-
-  IPAddress myIP = WiFi.softAPIP();
-  Serial1.print("AP IP address: ");
- Serial1.println(myIP);
-  
-
+  Serial1.println("");
+  Serial1.print("Connected to ");
+  Serial1.println(ssid);
+  Serial1.print("IP address: ");
+  Serial1.println(WiFi.localIP());
+/**********************************************/
   
   server.on("/", handleRoot);
   server.onNotFound(handleNotFound);
@@ -341,10 +428,11 @@ void loop()
   webSocket.loop();
   server.handleClient();
   ArduinoOTA.handle();
+  recvWithStartEndMarkers();
   unsigned long currentMillis = millis();
  delay(10);
   if(currentMillis - previousMillis >= interval) {
-   
+   Serial.print("<r-1000>");
     previousMillis = currentMillis;  
 // Timer has run out
   }

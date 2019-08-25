@@ -46,7 +46,7 @@ void setup()
   //attach interrupts 
   attachInterrupt(digitalPinToInterrupt(ENCODER0PINA),onInterrupt0, RISING);
   attachInterrupt(digitalPinToInterrupt(ENCODER1PINA),onInterrupt1, RISING); 
-  Serial.begin (9600);
+  Serial.begin (57600);
 
   delay(1000);
   analogWrite(pinENA, PWMA);
@@ -204,19 +204,21 @@ void setPosition(char dir, long steps)
     // if stepsA<offshootA - no point turning the motor. Repeat for stepsB     
          if (dir=='F') //Single quotes - Double quotes don't work.
             {
-                if (not (motorARunning)) {rotateAF(); stepsA=steps-offshootA; dirA=dir;}
+                if (not (motorARunning)) {rotateAF(); stepsA=steps; dirA=dir;}
              }
          else if (dir=='R')
             {
-               if (not (motorARunning)) {rotateAR();stepsA=steps-offshootA;dirA=dir;}
+               if (not (motorARunning)) {rotateAR();stepsA=steps;dirA=dir;}
             }
          else if (dir=='f') //Single quotes - Double quotes don't work.
             {
-                if (not (motorBRunning)) {rotateBF();stepsB=steps-offshootB;dirB=dir;}
+               rotateBF();
+               // if (not (motorBRunning)) {rotateBF();stepsB=steps;dirB=dir;}
              }
          else if (dir=='r')
             {
-               if (not (motorBRunning)) {rotateBR();stepsB=steps-offshootB;dirB=dir;}
+               rotateBR();
+               //if (not (motorBRunning)) {rotateBR();stepsB=steps;dirB=dir;}
             }
     newData=false;
     }
