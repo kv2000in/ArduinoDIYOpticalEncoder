@@ -11,8 +11,8 @@
 long encoder0Position = 0;
 long encoder1Position = 0;
 int PPR=8; //pulses per rotation
-int PWMA = 140;
-int PWMB = 140;
+int PWMA = 255;
+int PWMB = 255;
 // volatile variables - modified by interrupt service routine (ISR)
 volatile long counter0=0;
 volatile long counter1=0;
@@ -56,6 +56,7 @@ void setup()
   analogWrite(pinENB, PWMB);
   digitalWrite(pinINB1,LOW);
   digitalWrite(pinINB2,LOW);
+
 
 }
  
@@ -200,6 +201,8 @@ void setPosition(char dir, long steps)
 
   if (newData)
   {
+    if(dir == 'S'){rotateAStop();}
+    if(dir == 's'){rotateBStop();}
     // It is new data from Serial - it wants to move the motors one way or the other
     // if stepsA<offshootA - no point turning the motor. Repeat for stepsB     
          if (dir=='F') //Single quotes - Double quotes don't work.
@@ -213,11 +216,13 @@ void setPosition(char dir, long steps)
          else if (dir=='f') //Single quotes - Double quotes don't work.
             {
                rotateBF();
+               Serial.println("<OK-BF>");
                // if (not (motorBRunning)) {rotateBF();stepsB=steps;dirB=dir;}
              }
          else if (dir=='r')
             {
                rotateBR();
+               Serial.println("<OK-BR>");
                //if (not (motorBRunning)) {rotateBR();stepsB=steps;dirB=dir;}
             }
     newData=false;
@@ -241,8 +246,9 @@ void setPosition(char dir, long steps)
             }
             
         counter0 =0;
-        Serial.print("0-");
-        Serial.println(encoder0Position); 
+        Serial.print("<0-");
+        Serial.print(encoder0Position);
+        Serial.println(">"); 
             }
      
     if ((motorBRunning) and (stepsB<counter1))
@@ -261,8 +267,9 @@ void setPosition(char dir, long steps)
                encoder1Position = encoder1Position-counter1;
             }
         counter1 =0;
-        Serial.print("1-");
-        Serial.println(encoder1Position); 
+        Serial.print("<1-");
+        Serial.print(encoder1Position);
+        Serial.println(">");
             }
      
 

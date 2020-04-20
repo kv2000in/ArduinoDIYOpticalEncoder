@@ -15,7 +15,7 @@ ESP8266WiFiMulti WiFiMulti;
 
 ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(8000);
-const char *ssid = "*****";
+const char *ssid = "*********";
 const char *password = "********";
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
@@ -48,7 +48,339 @@ int clientHeight,ZeroOffset;
 char str[8];
 unsigned long currESPSecs, currTime,timestamp, zeroTime;
 
-static const char PROGMEM INDEX_HTML[] = R"rawliteral( )rawliteral";
+static const char PROGMEM INDEX_HTML[] = R"rawliteral(
+ <!DOCTYPE HTML>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=2.7">
+
+  <meta  content="text/html; charset=utf-8">
+<style>
+  * {
+    box-sizing: border-box;
+}
+  
+  [class*="col-"] {
+    float: left;
+    padding: 15px;
+}
+/* For mobile phones: */
+[class*="col-"] {
+    width: 100%;
+}
+@media only screen and (min-width: 1024px) {
+    /* For desktop: */
+    .col-1 {width: 8.33%;}
+    .col-2 {width: 16.66%;}
+    .col-3 {width: 25%;}
+    .col-4 {width: 33.33%;}
+    .col-5 {width: 41.66%;}
+    .col-6 {width: 50%;}
+    .col-7 {width: 58.33%;}
+    .col-8 {width: 66.66%;}
+    .col-9 {width: 75%;}
+    .col-10 {width: 83.33%;}
+    .col-11 {width: 91.66%;}
+    .col-12 {width: 100%;}
+}
+  .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+.svrlight{
+  background-color: red;
+  }
+.switch input {display:none;}
+.pwrlight{
+  position: relative;
+  height: 26px;
+  width: 26px;
+  right: 20px;
+  bottom: 4px;
+  border-radius: 10%;
+  }
+.pwrlight:active{
+  background-color: red;
+  border: none;
+  }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+.buttonpressedeffect {
+  display: inline-block;
+  padding: 15px 25px;
+  font-size: 24px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 9px #999;
+}
+
+.buttonpressedeffect:hover {background-color: #3e8e41}
+
+.buttonpressedeffect:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+  transform: translateX(4px);
+ }
+ 
+ .buttonhover {
+  display: inline-block;
+  border-radius: 4px;
+  background-color: #f4511e;
+  border: none;
+  color: #FFFFFF;
+  text-align: center;
+  font-size: 28px;
+  padding: 20px;
+  width: 200px;
+  transition: all 0.5s;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.buttonhover span {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  transition: 0.5s;
+}
+
+.button span:after {
+  content: '\00bb';
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  right: -20px;
+  transition: 0.5s;
+}
+
+.buttonhover:hover span {
+  padding-right: 25px;
+}
+
+.button:hover span:after {
+  opacity: 1;
+  right: 0;
+}
+
+</style>
+<script language="javascript" type="text/javascript">
+
+ var boolConnected=false;
+  function doConnect()
+  {
+      if (!(boolConnected)){
+      /*websocket = new WebSocket(document.myform.url.value);*/
+/*
+         websocket = new WebSocket('ws://192.168.1.106:8000/');
+*/
+
+         
+    websocket = new WebSocket('ws://' + window.location.hostname + ':8000/'); 
+    boolConnected=true;
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+  }
+
+  }
+  function onOpen(evt)
+  {
+    console.log("connected\n");
+
+  }
+
+  function onClose(evt)
+  {
+    console.log("disconnected\n");
+      /* if server disconnected - change the color to red*/
+
+      boolConnected=false;
+  }
+
+  function onMessage(evt)
+  {
+
+      
+     /* Data returned from ESP will be in the form of ON-1 OFF-1 ON-2 ON-5 OFF-2 OFF-5 CHKA-1010
+      CHKA-1010 4 digits correspond to gpio reads of pin 1,2,5,6
+    evt.data.slice(-1) = "1" or "2" or "5" or "6"
+    evt.data.slice(0,-2)="ON" or "OFF" 
+      evt.data.slice(0,-5)="CHKA" 
+      
+      Data returned from ESP will be in the form of FOR REV STOP
+      
+      */
+      
+      
+    console.log("response: " + evt.data + '\n');
+      document.getElementById("mytxtarea").innerHTML = evt.data;
+        if(evt.data=="FOR"){ /* Going forward*/
+        document.getElementById("pwrlightFOR").style.backgroundColor="red";
+        document.getElementById("sw_FOR").checked=true;
+        document.getElementById("sw_REV").disabled=true;
+        };
+    if(evt.data=="REV"){ /* Going Reverse */
+        document.getElementById("pwrlightREV").style.backgroundColor="red";
+        document.getElementById("sw_REV").checked=true;
+        document.getElementById("sw_FOR").disabled=true;
+        };
+    if(evt.data=="STOP"){ /* Stopped*/
+        document.getElementById("pwrlightFOR").style.backgroundColor="black";
+        document.getElementById("pwrlightREV").style.backgroundColor="black";
+        document.getElementById("sw_FOR").disabled=false;
+        document.getElementById("sw_REV").disabled=false;
+        document.getElementById("sw_FOR").checked=false;
+        document.getElementById("sw_REV").checked=false;
+        };  
+
+    
+    
+  
+  }
+
+  function onError(evt)
+  {
+
+  console.log('error: ' + evt.data + '\n');
+  websocket.close();
+
+
+  }
+
+  function doSend(message)
+  {
+    console.log("sent: " + message + '\n');
+
+    websocket.send(message);
+  }
+
+function closeWS(){
+    
+   /* Probable bug in arduino websocket - hangs if not closed properly, specially by a phone browser entering a powersaving mode*/
+    websocket.close();
+    boolConnected=false;
+}
+
+/*    On android - when page loads - focus event isn't fired so websocket doesn't connect*/
+   
+   window.addEventListener("focus",doConnect, false);
+   
+    
+ window.addEventListener("blur",closeWS, false);
+ window.addEventListener('load', function() {
+    foo(true); 
+     /*After page loading blur doesn't fire until focus has fired at least once*/
+     
+    /* window.focus();*/
+},{once:true}, false);
+
+/*window.addEventListener('blur', function() {
+    foo(false);
+}, {once:true}, false); */
+
+
+function foo(bool) {
+    if (bool){
+doConnect();
+    } else {
+        
+      
+ /*   Probable bug in arduino websocket - hangs if not closed properly, specially by a phone browser entering a powersaving mode
+ */       websocket.close();    
+    }
+}
+    
+</script>
+<script type="text/javascript">
+
+
+function queryServer1(direction)
+{
+
+  var payload;
+  if (document.getElementById("sw_"+direction).checked==true){
+        payload=direction;}
+        else {
+        
+        payload="STOP";
+        };
+ 
+
+  doSend(payload);
+ 
+};
+</script>
+<title>Serial COM </title></head>
+<body>
+
+
+<div class = "col-6">
+  <textarea id="mytxtarea">
+    
+    </textarea>
+
+<input id = "serialSend">
+    <button id = "btnserialSend" onclick='doSend(document.getElementById("serialSend").value)'>SEND</button>
+    
+</div>
+
+</body>
+
+
+</html>)rawliteral";
 
 
 
@@ -87,47 +419,15 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           //Serial1.println("Received Command");
           //Serial1.println(split2);
           if (strcmp(split2,"ZERO") == 0){
-           // Serial1.println("Zero command received");
-            if (!clientHeight){
-              Serial1.println("No client data");
-              } else {
-            ZeroOffset=serverHeight-clientHeight;
-            zeroTime=timestamp+((millis()/1000)-currESPSecs);
-            //Serial1.println(currTime);
-            File f = SPIFFS.open("/Zero.txt", "w");
-            f.print("Time:");
-            f.print(zeroTime);
-            f.print("\n");
-            f.print("ZeroOffset:");
-            f.print(ZeroOffset);
-            f.print("\n");
-            f.close();
-            //Reset the currESPsecs to current millis at the zerotime
-            //So the data save time will be zero time + secs elapsed since zero time
-            currESPSecs = millis()/1000;
-            
-            }
+
           } else if (strcmp(split2,"STARTSAVE") == 0){
             
-            if (!saveData){
-              saveData=true;
-            File f = SPIFFS.open("/Data.txt", "w");
-            f.close();
-            //Create a file which keeps log of current saving process
-            File s = SPIFFS.open("/Save.txt", "w");
-            s.print("Y");
-            s.close();
-            }
-            
+
             } 
 
             else if (strcmp(split2,"STOPSAVE") == 0) 
             {
-              if (saveData){saveData=false;
-                File s = SPIFFS.open("/Save.txt", "w");
-                s.print("N");
-                s.close();
-              }
+
               }
 
              
@@ -145,20 +445,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         } 
       else if (strcmp(split1,"DATA") == 0)
         {
-          //Serial1.println("Received Data");
-          //Serial1.println(split2);
+
           clientHeight=atoi(split2);
-          if (saveData){
-          //currTime=timestamp+((millis()/1000)-currESPSecs);
-          currTime=((millis()/1000)-currESPSecs);
-          File f = SPIFFS.open("/Data.txt", "a");
-          f.print(currTime);
-          f.print(":");
-          f.print("C:");
-          f.print(clientHeight);
-          f.print("\n");
-          f.close();
-          }
+
           if(broadcast){
            webSocket.broadcastTXT(split2, strlen(split2));
             } else {
@@ -184,6 +473,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           Serial1.printf("[%u] get Text: %s\r\n", num, payload);
           // send data to all connected clients
           //webSocket.broadcastTXT(payload, length);
+        //Send commands coming via websocket to atmega
+        Serial.print(mystring);
       }
     }
     // clientHeight=atoi((const char *)payload);
@@ -259,9 +550,10 @@ bool handleFileRead(String path) { // send the right file to the client (if it e
 const byte numChars = 32;
 char receivedChars[numChars]; // an array to store the received data
 boolean newData = false;
-char DIR[1] = {0};
+char DIR[2] = {'X','Y'};
 //char DIR = 'Z';
-long VALUE = 0;
+//long VALUE = 0;
+char VALUE[2]={'W','Z'};
 void recvWithStartEndMarkers() {
     static boolean recvInProgress = false;
     static byte ndx = 0;
@@ -284,6 +576,8 @@ void recvWithStartEndMarkers() {
             else {
                 receivedChars[ndx] = '\0'; // terminate the string
                 recvInProgress = false;
+                //Broadcast received serial comm from Atmega - back to websocket
+                webSocket.broadcastTXT(receivedChars,ndx);
                 ndx = 0;
                 parseData();
                 newData = true;
@@ -310,6 +604,7 @@ void showNewData() {
 
 void parseData() {
 
+
     // split the data into its parts
     
   char * strtokIndx; // this is used by strtok() as an index
@@ -319,7 +614,8 @@ void parseData() {
   //strcpy(DIR,0);
   //strtokIndx = strtok(NULL, "-"); // this continues where the previous call left off
   //VALUE = atoi(strtokIndx); // convert this part to an integer
-  VALUE = atol(strtokIndx+2);   
+  //VALUE = atol(strtokIndx+2);   
+  strcpy(VALUE, strtokIndx+3); // copy it to DIR
  }
 /*******************Serial Read Functions ************************/
 
@@ -429,13 +725,19 @@ void loop()
   server.handleClient();
   ArduinoOTA.handle();
   recvWithStartEndMarkers();
-  unsigned long currentMillis = millis();
- delay(10);
-  if(currentMillis - previousMillis >= interval) {
-   Serial.print("<r-1000>");
-    previousMillis = currentMillis;  
-// Timer has run out
-  }
+//  unsigned long currentMillis = millis();
+// delay(10);
+//  if(currentMillis - previousMillis >= interval) {
+//   Serial.print("<r-1000>");
+//    previousMillis = currentMillis; 
+//  
+//// Timer has run out
+//  }
+showNewData();
+//   if (newData) {
+//    Serial1.print(DIR[0],VALUE);
+//   newData=false;
+//   }
 // Yield to WiFi  
 //delay(5);
 }
