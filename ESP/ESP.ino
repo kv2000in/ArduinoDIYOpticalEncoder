@@ -15,8 +15,8 @@ ESP8266WiFiMulti WiFiMulti;
 
 ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(8000);
-const char *ssid = "*********";
-const char *password = "********";
+const char *ssid = "**";
+const char *password = "**";
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
 
@@ -48,8 +48,7 @@ int clientHeight,ZeroOffset;
 char str[8];
 unsigned long currESPSecs, currTime,timestamp, zeroTime;
 
-static const char PROGMEM INDEX_HTML[] = R"rawliteral(
- <!DOCTYPE HTML>
+static const char PROGMEM INDEX_HTML[] = R"rawliteral(<!DOCTYPE HTML>
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=2.7">
@@ -362,6 +361,30 @@ function queryServer1(direction)
   doSend(payload);
  
 };
+function returntoZero(){
+  var myreadingintxtarea=document.getElementById("mytxtarea").innerHTML.split("-");
+ if(myreadingintxtarea) //check to see if it contains something = not blank = not UNDEFINED
+    {
+    
+    if (myreadingintxtarea [myreadingintxtarea.length-1] =="0") //Already at zero - do nothing. Log
+     {
+         console.log("At Zero");
+         
+     }
+    else
+        {
+            if (myreadingintxtarea.length==3) //length will be 3 if it is 0--10000 , meaning -it is at negative position. Otherwise length will be 2.
+            {
+                doSend("<F-"+myreadingintxtarea[2]+">");
+            }
+            else if (myreadingintxtarea.length==2)
+            {
+                doSend("<R-"+myreadingintxtarea[1]+">"); 
+            }
+        }
+    }
+ };
+    
 </script>
 <title>Serial COM </title></head>
 <body>
@@ -374,6 +397,10 @@ function queryServer1(direction)
 
 <input id = "serialSend">
     <button id = "btnserialSend" onclick='doSend(document.getElementById("serialSend").value)'>SEND</button>
+    <button id = "btnserialSendSTOP" onclick='doSend("<S-1>")'>STOP</button>
+    <button id = "btnserialSendFOR" onclick='doSend("<F-10000>")'>F-10000</button>
+    <button id = "btnserialSendREV" onclick='doSend("<R-10000>")'>R-10000</button>
+    <button id = "btnserialSendRET2ZERO" onclick='returntoZero()'>Zero</button>
     
 </div>
 
