@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		2A7CEE9825BFC2CB0084EBE0 /* MotorPIDControl.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = MotorPIDControl.ino; path = MotorPIDControl/MotorPIDControl.ino; sourceTree = "<group>"; };
+		2A7CEE9925BFC39F0084EBE0 /* MotorPWMResponse.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = MotorPWMResponse.ino; path = MotorPWMResponse/MotorPWMResponse.ino; sourceTree = "<group>"; };
+		2A7CEE9A25C0E5970084EBE0 /* PID_Position_OK */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PID_Position_OK; sourceTree = "<group>"; };
 		2A827FD62309AF0600A3B13E /* ESP */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ESP; sourceTree = "<group>"; };
 		2A827FDA2309B19C00A3B13E /* init */ = {isa = PBXFileReference; lastKnownFileType = folder; path = init; sourceTree = "<group>"; };
 		2A827FDB2309B1BB00A3B13E /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
@@ -19,6 +22,9 @@
 		2A827FCD23079F4200A3B13E = {
 			isa = PBXGroup;
 			children = (
+				2A7CEE9A25C0E5970084EBE0 /* PID_Position_OK */,
+				2A7CEE9925BFC39F0084EBE0 /* MotorPWMResponse.ino */,
+				2A7CEE9825BFC2CB0084EBE0 /* MotorPIDControl.ino */,
 				2A827FDE230C7BD300A3B13E /* ESP-Serial-Documentation.txt */,
 				2A827FDD230A04FD00A3B13E /* UART2.ino */,
 				2A827FDC2309B3D700A3B13E /* index1.html */,
